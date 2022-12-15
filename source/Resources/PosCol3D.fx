@@ -1,29 +1,46 @@
+
+float4x4 gWorldViewProj : WorldViewProjection;
+
 //---------------------------------
 //Input/Output structs
 //----------------------------------
 struct VS_INPUT
 {
-	Vector3 Position : POSITION;
-	Vector3 Color : COLOR;
+	float3 Position : POSITION;
+	float3 Color : COLOR;
 };
 
 struct VS_OUTPUT
 {
-	Vector4 Position : SV_POSITION;
-	Vector3 Color : COLOR;
+	float4 Position : SV_POSITION;
+	float3 Color : COLOR;
 };
 
 //Vertex Shader
 VS_OUTPUT VS(VS_INPUT input)
 {
 	VS_OUTPUT output = (VS_OUTPUT)0;
-	output.Position = Vector4{ input.Position, 1.f };
+	output.Position = mul(float4( input.Position, 1.f ), gWorldViewProj);
 	output.Color = input.Color;
 	return output;
 }
 
 //Pixel shader
-Vector4 PS(VS_OUTPUT input) : SV_TARGET
+float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-	return Vector4(input.Color, 1.f);
+	return float4(input.Color, 1.f);
+}
+
+//--------------------------------------------------
+//Technique
+//--------------------------------------------------
+
+technique11 DefaultTechnique
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
 }

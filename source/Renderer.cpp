@@ -1,8 +1,10 @@
 #include "pch.h"
 #include "Renderer.h"
 
-namespace dae {
 
+
+namespace dae
+{
 	Renderer::Renderer(SDL_Window* pWindow) :
 		m_pWindow(pWindow)
 	{
@@ -20,10 +22,16 @@ namespace dae {
 		{
 			std::cout << "DirectX initialization failed!\n";
 		}
+
+		m_pMesh = InitializeMesh();
+		m_Camera = Camera({ 0.f, 0.f, -10.f }, 45.f, (float)m_Width / m_Height);
 	}
 
 	Renderer::~Renderer()
 	{
+		delete m_pMesh;
+		m_pMesh = nullptr;
+
 		if (m_pRenderTargetView)
 		{
 			m_pRenderTargetView->Release();
@@ -64,7 +72,7 @@ namespace dae {
 
 	void Renderer::Update(const Timer* pTimer)
 	{
-
+		m_Camera.Update(pTimer);
 	}
 
 
@@ -79,7 +87,7 @@ namespace dae {
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
 		//2. Set Pipeline & invoke DrawCalls (= render)
-
+		m_pMesh->Render(m_pDeviceContext, m_Camera);
 		
 		//3. Present BackBuffer (swap)
 		m_pSwapChain->Present(0, 0);
@@ -188,5 +196,18 @@ namespace dae {
 		m_pDeviceContext->RSSetViewports(1, &viewport);
 
 		pDxgiFactory->Release();
+	}
+
+	Mesh* Renderer::InitializeMesh()
+	{
+		std::vector<Vertex_PosCol> vertices{
+				{{0.f, 3.f, 2.f}, {1.f, 0.f, 0.f}},
+				{{3.f, -3.f, 2.f}, {0.f, 0.f, 1.f}},
+				{{-3.f, -3.f, 2.f}, {0.f, 1.f, 0.f}}
+		};
+
+		std::vector<uint32_t> indices{ 0,1,2 };
+
+		return new Mesh(m_pDevice, vertices, indices);
 	}
 }
