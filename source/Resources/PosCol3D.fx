@@ -1,19 +1,21 @@
 
 float4x4 gWorldViewProj : WorldViewProjection;
-
 float4x4 gWorldMatrix : WorldMatrix;
-
 float4x4 gInvViewMatrix : InvViewMatrix;
 
 Texture2D gDiffuseMap : DiffuseMap;
-
 Texture2D gNormalMap : NormalMap;
-
 Texture2D gSpecularMap : SpecularMap;
-
 Texture2D gGlossMap : GlossMap;
 
 SamplerState gSampler;
+
+const float1 PI = 3.1415927f;
+    
+    //Light
+const float3 g_LightDirection = { 0.577f, -0.577f, 0.577f };
+const float1 g_LightIntensity = 7.0f;
+const float3 g_AmbientColor = { .025f, .025f, .025f };
 
 //---------------------------------
 //Input/Output structs
@@ -43,8 +45,8 @@ VS_OUTPUT VS(VS_INPUT input)
 	VS_OUTPUT output = (VS_OUTPUT)0;
 	output.Position = mul(float4( input.Position, 1.f ), gWorldViewProj);
     output.UV = input.UV;
-    output.Normal = mul(input.Normal, (float3x3)gWorldMatrix);
-    output.Tangent = mul(input.Tangent, (float3x3)gWorldMatrix);
+    output.Normal = mul(normalize(input.Normal), (float3x3) gWorldMatrix);
+    output.Tangent = mul(normalize(input.Tangent), (float3x3) gWorldMatrix);
     output.WorldPosition = mul(float4(input.Position, 1.f), gWorldMatrix);
 	return output;
 }
@@ -70,43 +72,35 @@ float3 Phong(float specular, float exp, float3 l, float3 v, float3 n)
 }
 
 float3 PixelShading(VS_OUTPUT input)
-{    
-    const float1 PI = 3.1415927f;
-    
-    //Light
-    const float3 lightDirection = (0.577f, -0.577f, 0.577f);
-    const float1 lightIntensity = 7.0f;
-    const float3 ambientColor = (.025f, .025f, .025f);
-    
+{       
 	//normal map
     
     //if (true) //using normal map?
     //{
-    float3 binormal = normalize(cross(input.Normal, input.Tangent));
+        float3 binormal = normalize(cross(input.Normal, input.Tangent));
 
         float3x3 tangentSpaceAxis =
         {
-             normalize(input.Tangent),
-	         binormal,
-	         normalize(input.Normal),
+            normalize(input.Tangent),
+	        binormal,
+	        normalize(input.Normal),
         };
 
         float4 normalSample = gNormalMap.Sample(gSampler, input.UV); //normal
-        float3 normalColor = normalSample.xyz; //normal
+        float3 normalColor = normalSample.rgb; //normal
         
-        normalColor = 2.f * normalColor - 1.f;
+        normalColor = 2.f * normalColor - float3(1.f, 1.f, 1.f);
 
         float3 tangentSpaceNormal = normalize(mul(normalColor, tangentSpaceAxis));
     //}
     
-	//observed area
-    float1 cosineLaw = dot(tangentSpaceNormal, -lightDirection);
-    
+	//observed area  
+    float1 cosineLaw = saturate(dot(tangentSpaceNormal, -g_LightDirection));
+  
     if(cosineLaw < 0)
     {
-        return ambientColor;
+        return g_AmbientColor;
     }
-    cosineLaw = saturate(cosineLaw);
 
 	//sample diffuse color
     float4 diffuseSample = gDiffuseMap.Sample(gSampler, input.UV); //Diffuse
@@ -119,10 +113,11 @@ float3 PixelShading(VS_OUTPUT input)
     float1 specular = gSpecularMap.Sample(gSampler, input.UV).r; //Specular
     float1 phongExp = gGlossMap.Sample(gSampler, input.UV).r * shininess; //Phong exponent
     
-    float3 phongColor = Phong(specular, phongExp, lightDirection, viewDirection, tangentSpaceNormal);
+    float3 phongColor = Phong(specular, phongExp, -g_LightDirection, viewDirection, tangentSpaceNormal);
     
-    float3 returnColor = lightIntensity * diffuseColor * cosineLaw + phongColor + ambientColor;
-    //float3 returnColor = diffuseColor;
+    float3 returnColor = (g_AmbientColor + g_LightIntensity * diffuseColor) * cosineLaw + phongColor;
+    //float3 returnColor =  diffuseColor + phongColor;
+    //float3 returnColor = cosineLaw;
     returnColor = MaxToOne(returnColor);
     
     return returnColor;

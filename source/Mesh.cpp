@@ -166,12 +166,12 @@ namespace dae
 		vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
 		vertexDesc[2].SemanticName = "NORMAL";
-		vertexDesc[2].Format = DXGI_FORMAT_R32G32_FLOAT;
+		vertexDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 		vertexDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 		vertexDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
 		vertexDesc[3].SemanticName = "TANGENT";
-		vertexDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;
+		vertexDesc[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 		vertexDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 		vertexDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
@@ -244,9 +244,32 @@ namespace dae
 		pDeviceContext->IASetInputLayout(m_pInputLayout);
 
 		const Matrix viewProjmatrix = camera.GetViewProjMatrix();
-		const Matrix invViewMatrix = camera.GetInvViewMatrix();
+		const Matrix invCameraViewMatrix = camera.GetInvViewMatrix();
 
 		const Matrix worldViewProjectionMatrix = m_WorldMatrix * viewProjmatrix;
+
+		DirectX::XMMATRIX worldMatrix
+		{
+			m_WorldMatrix[0][0],
+			m_WorldMatrix[0][1],
+			m_WorldMatrix[0][2],
+			m_WorldMatrix[0][3],
+
+			m_WorldMatrix[1][0],
+			m_WorldMatrix[1][1],
+			m_WorldMatrix[1][2],
+			m_WorldMatrix[1][3],
+
+			m_WorldMatrix[2][0],
+			m_WorldMatrix[2][1],
+			m_WorldMatrix[2][2],
+			m_WorldMatrix[2][3],
+
+			m_WorldMatrix[3][0],
+			m_WorldMatrix[3][1],
+			m_WorldMatrix[3][2],
+			m_WorldMatrix[3][3]
+		};
 
 		DirectX::XMMATRIX worldViewProjMatrix
 		{
@@ -271,7 +294,30 @@ namespace dae
 			worldViewProjectionMatrix[3][3]
 		};
 
-		const float* worldMatFloatPtr = reinterpret_cast<const float*>(&m_WorldMatrix);
+		DirectX::XMMATRIX invViewMatrix
+		{
+			invCameraViewMatrix[0][0],
+			invCameraViewMatrix[0][1],
+			invCameraViewMatrix[0][2],
+			invCameraViewMatrix[0][3],
+
+			invCameraViewMatrix[1][0],
+			invCameraViewMatrix[1][1],
+			invCameraViewMatrix[1][2],
+			invCameraViewMatrix[1][3],
+
+			invCameraViewMatrix[2][0],
+			invCameraViewMatrix[2][1],
+			invCameraViewMatrix[2][2],
+			invCameraViewMatrix[2][3],
+
+			invCameraViewMatrix[3][0],
+			invCameraViewMatrix[3][1],
+			invCameraViewMatrix[3][2],
+			invCameraViewMatrix[3][3]
+		};
+
+		const float* worldMatFloatPtr = reinterpret_cast<const float*>(&worldMatrix);
 		m_pEffect->GetWorldMatrix()->SetMatrix(worldMatFloatPtr);
 
 		const float* worldViewProjMatFloatPtr = reinterpret_cast<const float*>(&worldViewProjMatrix);
