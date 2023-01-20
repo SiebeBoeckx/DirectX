@@ -21,6 +21,8 @@ namespace dae
 
 		void Update(const Timer* pTimer);
 		void Render() const;
+		void CycleSamplerState();
+		void CycleRotation();
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -42,9 +44,15 @@ namespace dae
 		ID3D11RenderTargetView* m_pRenderTargetView{};
 		//...
 
-		Mesh* InitializeMesh();
-		Mesh* m_pMesh{};
+		Mesh_PosTex* InitializeMesh();
+		Mesh_PosTex* m_pMesh{};
+		bool m_IsRotating{ true };
 
 		Camera m_Camera{};
+
+		Texture* m_pTexture{};
+		Texture* m_pNormalMap{};
+		Texture* m_pSpecularMap{};
+		Texture* m_pGlossMap{};
 	};
 }

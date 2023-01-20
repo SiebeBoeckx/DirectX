@@ -155,6 +155,7 @@ namespace dae
 		}
 
 		Matrix GetViewMatrix() const { return viewMatrix; };
+		Matrix GetInvViewMatrix() const { return invViewMatrix; };
 		Matrix GetProjectionMatrix() const { return projectionMatrix; };
 	};
 }

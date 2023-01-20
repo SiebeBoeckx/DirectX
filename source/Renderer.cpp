@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Renderer.h"
-
+#include "Utils.h"
 
 
 namespace dae
@@ -22,13 +22,29 @@ namespace dae
 		{
 			std::cout << "DirectX initialization failed!\n";
 		}
+		m_pTexture = Texture::LoadFromFile("./Resources/vehicle_diffuse.png", m_pDevice);
+		m_pNormalMap = Texture::LoadFromFile("./Resources/vehicle_normal.png", m_pDevice);
+		m_pSpecularMap = Texture::LoadFromFile("./Resources/vehicle_specular.png", m_pDevice);
+		m_pGlossMap = Texture::LoadFromFile("./Resources/vehicle_gloss.png", m_pDevice);
 
 		m_pMesh = InitializeMesh();
-		m_Camera = Camera({ 0.f, 0.f, -10.f }, 45.f, (float)m_Width / m_Height);
+		m_Camera = Camera({ 0.f, 0.f, 0.f }, 45.f, (float)m_Width / m_Height);
 	}
 
 	Renderer::~Renderer()
 	{
+		delete m_pTexture;
+		m_pTexture = nullptr;
+
+		delete m_pNormalMap;
+		m_pNormalMap = nullptr;
+
+		delete m_pSpecularMap;
+		m_pSpecularMap = nullptr;
+
+		delete m_pGlossMap;
+		m_pGlossMap = nullptr;
+
 		delete m_pMesh;
 		m_pMesh = nullptr;
 
@@ -73,6 +89,12 @@ namespace dae
 	void Renderer::Update(const Timer* pTimer)
 	{
 		m_Camera.Update(pTimer);
+		
+		const float rotationSpeed{ PI/4 }; //45 degrees / sec
+		if (m_IsRotating)
+		{
+			m_pMesh->m_WorldMatrix = Matrix::CreateRotationY(rotationSpeed * pTimer->GetElapsed()) * m_pMesh->m_WorldMatrix;
+		}
 	}
 
 
@@ -82,7 +104,7 @@ namespace dae
 			return;
 
 		//1. Clear RTV & DSV
-		ColorRGB clearColor{ 0.f,0.f,0.3f };
+		ColorRGB clearColor{ .39f, .59f, .93f };
 		m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
@@ -159,15 +181,14 @@ namespace dae
 		depthStencilDesc.CPUAccessFlags = 0;
 		depthStencilDesc.MiscFlags = 0;
 
-		//view
+		result = m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
+		if (FAILED(result)) return result;
+
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{};
 		depthStencilViewDesc.Format = depthStencilDesc.Format;
 		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		depthStencilViewDesc.Texture2D.MipSlice = 0;
-
-		result = m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
-		if (FAILED(result)) return result;
-
+		
 		result = m_pDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView);
 		if (FAILED(result)) return result;
 
@@ -175,7 +196,6 @@ namespace dae
 		//===================================================================
 		//Resource
 		result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&m_pRenderTargetBuffer));
-		if (FAILED(result)) return result;
 
 		result = m_pDevice->CreateRenderTargetView(m_pRenderTargetBuffer, nullptr, &m_pRenderTargetView);
 		if (FAILED(result)) return result;
@@ -198,16 +218,28 @@ namespace dae
 		pDxgiFactory->Release();
 	}
 
-	Mesh* Renderer::InitializeMesh()
+	Mesh_PosTex* Renderer::InitializeMesh()
 	{
-		std::vector<Vertex_PosCol> vertices{
-				{{0.f, 3.f, 2.f}, {1.f, 0.f, 0.f}},
-				{{3.f, -3.f, 2.f}, {0.f, 0.f, 1.f}},
-				{{-3.f, -3.f, 2.f}, {0.f, 1.f, 0.f}}
-		};
+		std::vector<Vertex_PosTex> vertices{ };
+		std::vector<uint32_t> indices{ };
 
-		std::vector<uint32_t> indices{ 0,1,2 };
+		Utils::ParseOBJ("Resources/vehicle.obj", vertices, indices);
 
-		return new Mesh(m_pDevice, vertices, indices);
+		const Vector3 position{ Vector3{0.f, 0.f, 50.f} };
+		const Vector3 rotation{ };
+		const Vector3 scale{ Vector3{ 1.f, 1.f, 1.f } };
+		Matrix worldMatrix = Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
+
+		return new Mesh_PosTex(m_pDevice, vertices, indices, worldMatrix, m_pTexture, m_pNormalMap, m_pSpecularMap, m_pGlossMap);
+	}
+
+	void Renderer::CycleSamplerState()
+	{
+		m_pMesh->CycleSamplerState();
+	}
+
+	void Renderer::CycleRotation()
+	{
+		m_IsRotating = !m_IsRotating;
 	}
 }
