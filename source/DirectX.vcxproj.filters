@@ -10,7 +10,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="HardwareRenderer.h" />
     <ClInclude Include="Vector3.h">
       <Filter>Math</Filter>
     </ClInclude>
@@ -44,10 +44,13 @@
     </ClInclude>
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Utils.h" />
+    <ClInclude Include="SoftwareRenderer.h" />
+    <ClInclude Include="BaseRenderer.h" />
+    <ClInclude Include="RenderManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="HardwareRenderer.cpp" />
     <ClCompile Include="Vector3.cpp">
       <Filter>Math</Filter>
     </ClCompile>
@@ -67,5 +70,8 @@
     <ClCompile Include="Effect.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="SoftwareRenderer.cpp" />
+    <ClCompile Include="BaseRenderer.cpp" />
+    <ClCompile Include="RenderManager.cpp" />
   </ItemGroup>
 </Project>

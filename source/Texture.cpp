@@ -44,16 +44,29 @@ namespace dae
 		}
 	}
 
+	Texture::Texture(SDL_Surface* pSurface)
+		:m_pSurface{ pSurface },
+		m_pSurfacePixels{ (uint32_t*)pSurface->pixels }
+	{
+	}
+
 	Texture::~Texture()
 	{
-
-		m_pTexture->Release();
-		m_pShaderResourceView->Release();
+		if (m_pTexture)
+		{
+			m_pTexture->Release();
+			m_pShaderResourceView->Release();
+		}
 	}
 
 	Texture* Texture::LoadFromFile(const std::string& path, ID3D11Device* pDevice)
 	{
 		return new Texture(IMG_Load(path.c_str()), pDevice);
+	}
+
+	Texture* Texture::LoadFromFile(const std::string& path)
+	{
+		return new Texture(IMG_Load(path.c_str()));
 	}
 
 	ColorRGB Texture::Sample(const Vector2& uv) const

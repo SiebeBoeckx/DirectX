@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Mesh.h"
 
-
 namespace dae
 {
 	Mesh_PosCol::Mesh_PosCol(ID3D11Device* pDevice, std::vector<Vertex_PosCol> vertices, std::vector<uint32_t> indices)
@@ -138,7 +137,7 @@ namespace dae
 	//
 	//===================================================================================================================================
 
-	Mesh_PosTexVehicle::Mesh_PosTexVehicle(ID3D11Device* pDevice, std::vector<Vertex_PosTex> vertices, std::vector<uint32_t> indices, const Matrix& worldMatrix, Texture* pTexture, Texture* pNormal, Texture* pSpecular, Texture* pGloss)
+	Mesh_PosTexVehicle::Mesh_PosTexVehicle(ID3D11Device* pDevice, std::vector<Vertex_PosTex> vertices, std::vector<uint32_t> indices, const Matrix& worldMatrix, std::vector<Texture*> pTextures)
 		:m_pDevice{ pDevice }
 		, m_VerticesTex{ vertices }
 		, m_Indices{ indices }
@@ -147,10 +146,10 @@ namespace dae
 		m_pEffect = new Effect_PosTexVehicle{ m_pDevice, std::wstring{L"./Resources/PosTex3D.fx"} };
 		m_pEffect->Initialize();
 		m_pTechnique = m_pEffect->GetTechnique();
-		m_pEffect->SetDiffuseMap(pTexture);
-		m_pEffect->SetNormalMap(pNormal);
-		m_pEffect->SetSpecularMap(pSpecular);
-		m_pEffect->SetGlossMap(pGloss);
+		m_pEffect->SetDiffuseMap(pTextures[0]);
+		m_pEffect->SetNormalMap(pTextures[1]);
+		m_pEffect->SetSpecularMap(pTextures[2]);
+		m_pEffect->SetGlossMap(pTextures[3]);
 
 		//Create vertex layout
 		static constexpr uint32_t numElements{ 4 };
@@ -349,6 +348,18 @@ namespace dae
 	void Mesh_PosTexVehicle::CycleSamplerState()
 	{
 		m_pEffect->CycleSampleState();
+	}
+
+	//===================================================================================================================================
+	//
+	//===================================================================================================================================
+
+	Mesh_PosTexSoftwareVehicle::Mesh_PosTexSoftwareVehicle(std::vector<Vertex_PosTex> vertices, std::vector<uint32_t> indices, const Matrix& worldMatrix, PrimitiveTopology topology)
+		: m_VerticesTex{ vertices }
+		, m_Indices{ indices }
+		, m_WorldMatrix{ worldMatrix }
+		, m_topology{topology}
+	{
 	}
 
 	//===================================================================================================================================

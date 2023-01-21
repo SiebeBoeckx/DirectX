@@ -88,7 +88,7 @@ namespace dae
 			const float deltaTime = pTimer->GetElapsed();
 
 			//Camera Update Logic
-			const float movementSpeed = 25.f * deltaTime;
+			float movementSpeed = 25.f * deltaTime;
 
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
@@ -118,8 +118,13 @@ namespace dae
 				origin += right * movementSpeed;
 			}
 
+			if (pKeyboardState[SDL_SCANCODE_LSHIFT])
+			{
+				movementSpeed *= 2;
+			}
+
 			//rotation
-			const float rotationSpeed{ 5.f * deltaTime };
+			const float rotationSpeed{ 20.f * deltaTime };
 
 			if ((mouseState & SDL_BUTTON_RMASK) != 0)
 			{

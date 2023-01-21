@@ -5,7 +5,8 @@
 #endif
 
 #undef main
-#include "Renderer.h"
+#include "RenderManager.h"
+#include "Timer.h"
 
 using namespace dae;
 
@@ -28,7 +29,7 @@ int main(int argc, char* args[])
 	const uint32_t height = 480;
 
 	SDL_Window* pWindow = SDL_CreateWindow(
-		"DirectX - Siebe Boeckx/2DAE07",
+		"DualRasterizer - Siebe Boeckx/2DAE07",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		width, height, 0);
@@ -37,8 +38,8 @@ int main(int argc, char* args[])
 		return 1;
 
 	//Initialize "framework"
-	const auto pTimer = new Timer();
-	const auto pRenderer = new Renderer(pWindow);
+	const auto pTimer = new dae::Timer();
+	const auto pRenderer = new RenderManager(pWindow);
 
 	//Start loop
 	pTimer->Start();
@@ -58,14 +59,18 @@ int main(int argc, char* args[])
 			case SDL_KEYUP:
 				//Test for a key
 				//if (e.key.keysym.scancode == SDL_SCANCODE_X)
+				if (e.key.keysym.scancode == SDL_SCANCODE_F1)
+				{
+					pRenderer->ToggleRenderType();
+				}
 				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
 				{
 					pRenderer->CycleRotation();
 				}
-				if (e.key.keysym.scancode == SDL_SCANCODE_F4)
-				{
-					pRenderer->CycleSamplerState();
-				}
+				//if (e.key.keysym.scancode == SDL_SCANCODE_F4)
+				//{
+				//	pRenderer->CycleSamplerState();
+				//}
 				break;
 			default: ;
 			}

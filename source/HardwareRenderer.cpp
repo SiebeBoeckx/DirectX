@@ -1,12 +1,12 @@
 #include "pch.h"
-#include "Renderer.h"
+#include "HardwareRenderer.h"
 #include "Utils.h"
 
 
 namespace dae
 {
-	Renderer::Renderer(SDL_Window* pWindow) :
-		m_pWindow(pWindow)
+	HardwareRenderer::HardwareRenderer(SDL_Window* pWindow, Camera* pCamera) 
+		:BaseRenderer(pWindow, pCamera)
 	{
 		//Initialize
 		SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -22,39 +22,10 @@ namespace dae
 		{
 			std::cout << "DirectX initialization failed!\n";
 		}
-		m_pTexture = Texture::LoadFromFile("./Resources/vehicle_diffuse.png", m_pDevice);
-		m_pNormalMap = Texture::LoadFromFile("./Resources/vehicle_normal.png", m_pDevice);
-		m_pSpecularMap = Texture::LoadFromFile("./Resources/vehicle_specular.png", m_pDevice);
-		m_pGlossMap = Texture::LoadFromFile("./Resources/vehicle_gloss.png", m_pDevice);
-
-		m_pFireTexture = Texture::LoadFromFile("./Resources/fireFX_diffuse.png", m_pDevice);
-
-		m_pMesh = InitializeMesh();
-		m_pFire = InitializeFire();
-
-		m_Camera = Camera({ 0.f, 0.f, 0.f }, 45.f, (float)m_Width / m_Height);
 	}
 
-	Renderer::~Renderer()
+	HardwareRenderer::~HardwareRenderer()
 	{
-		delete m_pTexture;
-		m_pTexture = nullptr;
-
-		delete m_pNormalMap;
-		m_pNormalMap = nullptr;
-
-		delete m_pSpecularMap;
-		m_pSpecularMap = nullptr;
-
-		delete m_pGlossMap;
-		m_pGlossMap = nullptr;
-
-		delete m_pFireTexture;
-		m_pFireTexture = nullptr;
-
-		delete m_pFire;
-		m_pFire = nullptr;
-
 		delete m_pMesh;
 		m_pMesh = nullptr;
 
@@ -96,9 +67,9 @@ namespace dae
 		}
 	}
 
-	void Renderer::Update(const Timer* pTimer)
+	void HardwareRenderer::Update(const Timer* pTimer)
 	{
-		m_Camera.Update(pTimer);
+		m_pCamera->Update(pTimer);
 		
 		const float rotationSpeed{ PI/4 }; //45 degrees / sec
 		if (m_IsRotating)
@@ -108,8 +79,7 @@ namespace dae
 		}
 	}
 
-
-	void Renderer::Render() const
+	void HardwareRenderer::Render()
 	{
 		if (!m_IsInitialized)
 			return;
@@ -120,14 +90,14 @@ namespace dae
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
 		//2. Set Pipeline & invoke DrawCalls (= render)
-		m_pMesh->Render(m_pDeviceContext, m_Camera);
-		m_pFire->Render(m_pDeviceContext, m_Camera);
+		m_pMesh->Render(m_pDeviceContext, *m_pCamera);
+		m_pFire->Render(m_pDeviceContext, *m_pCamera);
 		
 		//3. Present BackBuffer (swap)
 		m_pSwapChain->Present(0, 0);
 	}
 
-	HRESULT Renderer::InitializeDirectX()
+	HRESULT HardwareRenderer::InitializeDirectX()
 	{
 		//1. Create Device and DeviceContext
 		//========================================================
@@ -230,43 +200,9 @@ namespace dae
 		pDxgiFactory->Release();
 	}
 
-	Mesh_PosTexVehicle* Renderer::InitializeMesh()
-	{
-		std::vector<Vertex_PosTex> vertices{ };
-		std::vector<uint32_t> indices{ };
-
-		Utils::ParseOBJ("Resources/vehicle.obj", vertices, indices);
-
-		const Vector3 position{ Vector3{0.f, 0.f, 50.f} };
-		const Vector3 rotation{ };
-		const Vector3 scale{ Vector3{ 1.f, 1.f, 1.f } };
-		Matrix worldMatrix = Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
-
-		return new Mesh_PosTexVehicle(m_pDevice, vertices, indices, worldMatrix, m_pTexture, m_pNormalMap, m_pSpecularMap, m_pGlossMap);
-	}
-
-	Mesh_PosTexFire* Renderer::InitializeFire()
-	{
-		std::vector<Vertex_PosTex> vertices{ };
-		std::vector<uint32_t> indices{ };
-
-		Utils::ParseOBJ("Resources/fireFX.obj", vertices, indices);
-
-		const Vector3 position{ Vector3{0.f, 0.f, 50.f} };
-		const Vector3 rotation{ };
-		const Vector3 scale{ Vector3{ 1.f, 1.f, 1.f } };
-		Matrix worldMatrix = Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
-
-		return new Mesh_PosTexFire(m_pDevice, vertices, indices, worldMatrix, m_pFireTexture);
-	}
-
-	void Renderer::CycleSamplerState()
+	void HardwareRenderer::CycleSamplerState()
 	{
 		m_pMesh->CycleSamplerState();
-	}
-
-	void Renderer::CycleRotation()
-	{
-		m_IsRotating = !m_IsRotating;
+		m_pFire->CycleSamplerState();
 	}
 }

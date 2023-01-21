@@ -56,4 +56,10 @@ namespace dae
 		if (v > 1.f) return 1.f;
 		return v;
 	}
+
+	inline float Remap(float original, float min = 0.995f, float max = 1.f)
+	{
+		const float clamped{ Clamp(original, min, max) };
+		return (clamped - min) / (max - min);
+	}
 }

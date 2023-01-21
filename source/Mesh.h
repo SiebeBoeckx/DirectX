@@ -33,18 +33,21 @@ namespace dae
 	class Mesh_PosTexVehicle final
 	{
 	public:
-		Mesh_PosTexVehicle(ID3D11Device* pDevice, std::vector<dae::Vertex_PosTex> vertices, std::vector<uint32_t> indices, const Matrix& worldMatrix, Texture* pTexture, Texture* pNormal, Texture* pSpecular, Texture* pGloss);
+		Mesh_PosTexVehicle(ID3D11Device* pDevice, std::vector<Vertex_PosTex> vertices, std::vector<uint32_t> indices, const Matrix& worldMatrix, std::vector<Texture*> pTextures);
 
 		virtual ~Mesh_PosTexVehicle();
 
 		void Render(ID3D11DeviceContext* pDeviceContext, const Camera& camera);
 		void CycleSamplerState();
 
+		std::vector<Vertex_PosTex> GetVertices() const { return m_VerticesTex; };
+		std::vector<uint32_t> GetIndices() const { return m_Indices; };
+
 		Matrix m_WorldMatrix{};
 
-	protected:
+	private:
 		ID3D11Device* m_pDevice{};
-		std::vector<dae::Vertex_PosTex> m_VerticesTex;
+		std::vector<Vertex_PosTex> m_VerticesTex;
 		std::vector<uint32_t> m_Indices;
 		int m_NumIndices{};
 
@@ -56,6 +59,24 @@ namespace dae
 		ID3D11InputLayout* m_pInputLayout{};
 		ID3D11Buffer* m_pIndexBuffer{};
 	};  
+	//I could have used inheritance again here, but I was running short on time, so sorry
+	class Mesh_PosTexSoftwareVehicle final
+	{
+	public:
+		Mesh_PosTexSoftwareVehicle(std::vector<Vertex_PosTex> vertices, std::vector<uint32_t> indices, const Matrix& worldMatrix, PrimitiveTopology topology);
+
+		std::vector<Vertex_PosTex> GetVertices() const { return m_VerticesTex; };
+		std::vector<uint32_t> GetIndices() const { return m_Indices; };
+
+		Matrix m_WorldMatrix{};
+		std::vector<Vertex_Out> m_Vertices_out{};
+		PrimitiveTopology m_topology{ PrimitiveTopology::TriangleList };
+
+	private:
+		std::vector<Vertex_PosTex> m_VerticesTex;
+		std::vector<uint32_t> m_Indices;
+		int m_NumIndices{};
+	};
 	//I could have used inheritance again here, but I was running short on time, so sorry
 	class Mesh_PosTexFire final
 	{
@@ -69,7 +90,7 @@ namespace dae
 
 		Matrix m_WorldMatrix{};
 
-	protected:
+	private:
 		ID3D11Device* m_pDevice{};
 		std::vector<dae::Vertex_PosTex> m_VerticesTex;
 		std::vector<uint32_t> m_Indices;
