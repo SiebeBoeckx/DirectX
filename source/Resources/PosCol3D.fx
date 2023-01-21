@@ -115,7 +115,7 @@ float3 PixelShading(VS_OUTPUT input)
     
     float3 phongColor = Phong(specular, phongExp, -g_LightDirection, viewDirection, tangentSpaceNormal);
     
-    float3 returnColor = (g_AmbientColor + g_LightIntensity * diffuseColor) * cosineLaw + phongColor;
+    float3 returnColor = (g_LightIntensity * diffuseColor) * cosineLaw + phongColor + g_AmbientColor;
     //float3 returnColor =  diffuseColor + phongColor;
     //float3 returnColor = cosineLaw;
     returnColor = MaxToOne(returnColor);
