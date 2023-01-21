@@ -144,7 +144,7 @@ namespace dae
 		, m_Indices{ indices }
 		, m_WorldMatrix{ worldMatrix }
 	{
-		m_pEffect = new Effect_PosTexVehicle{ m_pDevice, std::wstring{L"./Resources/PosCol3D.fx"} };
+		m_pEffect = new Effect_PosTexVehicle{ m_pDevice, std::wstring{L"./Resources/PosTex3D.fx"} };
 		m_pEffect->Initialize();
 		m_pTechnique = m_pEffect->GetTechnique();
 		m_pEffect->SetDiffuseMap(pTexture);
