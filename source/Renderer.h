@@ -44,8 +44,12 @@ namespace dae
 		ID3D11RenderTargetView* m_pRenderTargetView{};
 		//...
 
-		Mesh_PosTex* InitializeMesh();
-		Mesh_PosTex* m_pMesh{};
+		Mesh_PosTexVehicle* InitializeMesh();
+		Mesh_PosTexVehicle* m_pMesh{};
+
+		Mesh_PosTexFire* InitializeFire();
+		Mesh_PosTexFire* m_pFire{};
+
 		bool m_IsRotating{ true };
 
 		Camera m_Camera{};
@@ -54,5 +58,7 @@ namespace dae
 		Texture* m_pNormalMap{};
 		Texture* m_pSpecularMap{};
 		Texture* m_pGlossMap{};
+
+		Texture* m_pFireTexture{};
 	};
 }

@@ -12,7 +12,7 @@ SamplerState gSampler;
 
 RasterizerState gRasterizerState
 {
-    CullMode = back;
+    CullMode = none;
     FrontCounterClockwise = false;
 };
 
@@ -40,7 +40,7 @@ BlendState gBlendState
 DepthStencilState gDepthStencilState
 {
     DepthEnable = true;
-    DepthWriteMask = true;
+    DepthWriteMask = zero;
     DepthFunc = less;
     StencilEnable = false;
 };
@@ -87,73 +87,22 @@ VS_OUTPUT VS(VS_INPUT input)
 	return output;
 }
 
-float3 MaxToOne(float3 v)
+float4 MaxToOne(float4 v)
 {
     float maxValue = max(v.r, max(v.g, v.b));
     if (maxValue > 1.f)
     {
-        return float3(v / maxValue);
+        return float4(v / maxValue);
     }
     return v;    
 }
 
-float3 Phong(float specular, float exp, float3 l, float3 v, float3 n)
-{
-	//todo: W3
-	//assert(false && "Not Implemented Yet");
-    float3 reflectL = reflect(l, n);
-    float cosAlpha = max(0.f, dot(reflectL, v));
-    float value = specular * pow(cosAlpha, exp);
-    return float3(value, value, value);
-}
-
-float3 PixelShading(VS_OUTPUT input)
+float4 PixelShading(VS_OUTPUT input)
 {       
-	//normal map
-    
-    //if (true) //using normal map?
-    //{
-        float3 binormal = normalize(cross(input.Normal, input.Tangent));
-
-        float3x3 tangentSpaceAxis =
-        {
-            normalize(input.Tangent),
-	        binormal,
-	        normalize(input.Normal),
-        };
-
-        float4 normalSample = gNormalMap.Sample(gSampler, input.UV); //normal
-        float3 normalColor = normalSample.rgb; //normal
-        
-        normalColor = 2.f * normalColor - float3(1.f, 1.f, 1.f);
-
-        float3 tangentSpaceNormal = normalize(mul(normalColor, tangentSpaceAxis));
-    //}
-    
-	//observed area  
-    float1 cosineLaw = saturate(dot(tangentSpaceNormal, -g_LightDirection));
-  
-    if(cosineLaw < 0)
-    {
-        return g_AmbientColor;
-    }
-
 	//sample diffuse color
     float4 diffuseSample = gDiffuseMap.Sample(gSampler, input.UV); //Diffuse
-    float3 diffuseColor = diffuseSample.rgb / PI; //Diffuse
 
-	//Phong
-    const float1 shininess = 25.f;
-    float3 viewDirection = normalize(input.WorldPosition.xyz - gInvViewMatrix[3].xyz);
-    
-    float1 specular = gSpecularMap.Sample(gSampler, input.UV).r; //Specular
-    float1 phongExp = gGlossMap.Sample(gSampler, input.UV).r * shininess; //Phong exponent
-    
-    float3 phongColor = Phong(specular, phongExp, -g_LightDirection, viewDirection, tangentSpaceNormal);
-    
-    float3 returnColor = (g_LightIntensity * diffuseColor) * cosineLaw + phongColor + g_AmbientColor;
-    //float3 returnColor =  diffuseColor + phongColor;
-    //float3 returnColor = cosineLaw;
+    float4 returnColor = diffuseSample;
     returnColor = MaxToOne(returnColor);
     
     return returnColor;
@@ -162,10 +111,10 @@ float3 PixelShading(VS_OUTPUT input)
 //Pixel shader
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-    float3 color = PixelShading(input);
+    float4 color = PixelShading(input);
     
     //float3 testColor = (0, 0, 0);
-    return float4(color, 1.f);
+    return float4(color);
 }
 
 //--------------------------------------------------

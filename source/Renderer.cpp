@@ -27,7 +27,11 @@ namespace dae
 		m_pSpecularMap = Texture::LoadFromFile("./Resources/vehicle_specular.png", m_pDevice);
 		m_pGlossMap = Texture::LoadFromFile("./Resources/vehicle_gloss.png", m_pDevice);
 
+		m_pFireTexture = Texture::LoadFromFile("./Resources/fireFX_diffuse.png", m_pDevice);
+
 		m_pMesh = InitializeMesh();
+		m_pFire = InitializeFire();
+
 		m_Camera = Camera({ 0.f, 0.f, 0.f }, 45.f, (float)m_Width / m_Height);
 	}
 
@@ -44,6 +48,12 @@ namespace dae
 
 		delete m_pGlossMap;
 		m_pGlossMap = nullptr;
+
+		delete m_pFireTexture;
+		m_pFireTexture = nullptr;
+
+		delete m_pFire;
+		m_pFire = nullptr;
 
 		delete m_pMesh;
 		m_pMesh = nullptr;
@@ -94,6 +104,7 @@ namespace dae
 		if (m_IsRotating)
 		{
 			m_pMesh->m_WorldMatrix = Matrix::CreateRotationY(rotationSpeed * pTimer->GetElapsed()) * m_pMesh->m_WorldMatrix;
+			m_pFire->m_WorldMatrix = Matrix::CreateRotationY(rotationSpeed * pTimer->GetElapsed()) * m_pFire->m_WorldMatrix;
 		}
 	}
 
@@ -110,6 +121,7 @@ namespace dae
 
 		//2. Set Pipeline & invoke DrawCalls (= render)
 		m_pMesh->Render(m_pDeviceContext, m_Camera);
+		m_pFire->Render(m_pDeviceContext, m_Camera);
 		
 		//3. Present BackBuffer (swap)
 		m_pSwapChain->Present(0, 0);
@@ -218,7 +230,7 @@ namespace dae
 		pDxgiFactory->Release();
 	}
 
-	Mesh_PosTex* Renderer::InitializeMesh()
+	Mesh_PosTexVehicle* Renderer::InitializeMesh()
 	{
 		std::vector<Vertex_PosTex> vertices{ };
 		std::vector<uint32_t> indices{ };
@@ -230,7 +242,22 @@ namespace dae
 		const Vector3 scale{ Vector3{ 1.f, 1.f, 1.f } };
 		Matrix worldMatrix = Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
 
-		return new Mesh_PosTex(m_pDevice, vertices, indices, worldMatrix, m_pTexture, m_pNormalMap, m_pSpecularMap, m_pGlossMap);
+		return new Mesh_PosTexVehicle(m_pDevice, vertices, indices, worldMatrix, m_pTexture, m_pNormalMap, m_pSpecularMap, m_pGlossMap);
+	}
+
+	Mesh_PosTexFire* Renderer::InitializeFire()
+	{
+		std::vector<Vertex_PosTex> vertices{ };
+		std::vector<uint32_t> indices{ };
+
+		Utils::ParseOBJ("Resources/fireFX.obj", vertices, indices);
+
+		const Vector3 position{ Vector3{0.f, 0.f, 50.f} };
+		const Vector3 rotation{ };
+		const Vector3 scale{ Vector3{ 1.f, 1.f, 1.f } };
+		Matrix worldMatrix = Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
+
+		return new Mesh_PosTexFire(m_pDevice, vertices, indices, worldMatrix, m_pFireTexture);
 	}
 
 	void Renderer::CycleSamplerState()
