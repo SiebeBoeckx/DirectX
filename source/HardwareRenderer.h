@@ -23,6 +23,9 @@ namespace dae
 		void Update(const Timer* pTimer) override;
 		void Render() override;
 		void CycleSamplerState();
+		void CycleCullingMode();
+
+		void ToggleFireFX();
 
 		void SetTextures(std::vector<Texture*> pTextures, Texture* pFireTexture) {
 			m_pTexture = pTextures[0];
@@ -62,5 +65,6 @@ namespace dae
 		Texture* m_pGlossMap{};
 
 		Texture* m_pFireTexture{};
+		bool m_RenderFire{ true };
 	};
 }

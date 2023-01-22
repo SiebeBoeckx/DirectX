@@ -67,10 +67,38 @@ int main(int argc, char* args[])
 				{
 					pRenderer->CycleRotation();
 				}
-				//if (e.key.keysym.scancode == SDL_SCANCODE_F4)
-				//{
-				//	pRenderer->CycleSamplerState();
-				//}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F3)
+				{
+					pRenderer->ToggleFireFx();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F4)
+				{
+					pRenderer->CycleSamplerState();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F5)
+				{
+					pRenderer->CycleShadingMode();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F6)
+				{
+					pRenderer->ToggleNormalMap();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F7)
+				{
+					pRenderer->ToggleDepthBuffer();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F8)
+				{
+					pRenderer->ToggleBoundingBoxView();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F9)
+				{
+					pRenderer->CycleCullMode();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F10)
+				{
+					pRenderer->ToggleUniformColor();
+				}
 				break;
 			default: ;
 			}

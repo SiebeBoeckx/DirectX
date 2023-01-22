@@ -118,5 +118,73 @@ namespace dae
 	{
 		m_pRendererHardware->CycleRotation();
 		m_pRendererSoftware->CycleRotation();
+
+		std::cout << "Toggled rotation\n";
+	}
+
+	void RenderManager::CycleCullMode()
+	{
+		m_pRendererHardware->CycleCullingMode();
+		m_pRendererSoftware->CycleCullingMode();
+	}
+
+	void RenderManager::ToggleUniformColor()
+	{
+		m_pRendererHardware->ToggleUniformColor();
+		m_pRendererSoftware->ToggleUniformColor();
+
+		std::cout << "Toggled uniform color\n";
+	}
+
+	void RenderManager::ToggleFireFx()
+	{
+		if (m_CurrentRenderType == RenderType::Hardware)
+		{
+			m_pRendererHardware->ToggleFireFX();
+			std::cout << "Toggled fire effect\n";
+		}
+	}
+
+	void RenderManager::CycleSamplerState()
+	{
+		if (m_CurrentRenderType == RenderType::Hardware)
+		{
+			m_pRendererHardware->CycleSamplerState();
+		}
+	}
+
+	void RenderManager::CycleShadingMode()
+	{
+		if (m_CurrentRenderType == RenderType::Software)
+		{
+			m_pRendererSoftware->CycleRenderState();
+		}
+	}
+
+	void RenderManager::ToggleNormalMap()
+	{
+		if (m_CurrentRenderType == RenderType::Software)
+		{
+			m_pRendererSoftware->ToggleNormalMap();
+			std::cout << "Toggled normal map\n";
+		}
+	}
+
+	void RenderManager::ToggleDepthBuffer()
+	{
+		if (m_CurrentRenderType == RenderType::Software)
+		{
+			m_pRendererSoftware->ToggleDepthView();
+			std::cout << "Toggled depth buffer view\n";
+		}
+	}
+
+	void RenderManager::ToggleBoundingBoxView()
+	{
+		if (m_CurrentRenderType == RenderType::Software)
+		{
+			m_pRendererSoftware->ToggleBoundingBoxView();
+			std::cout << "Toggled bounding box view\n";
+		}
 	}
 }

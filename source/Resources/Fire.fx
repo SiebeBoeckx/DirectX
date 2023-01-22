@@ -13,7 +13,7 @@ SamplerState gSampler;
 RasterizerState gRasterizerState
 {
     CullMode = none;
-    FrontCounterClockwise = false;
+    FrontCounterClockwise = true;
 };
 
 //--------------------------------------------------

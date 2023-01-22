@@ -22,8 +22,22 @@ namespace dae
 		void Update(const Timer* pTimer);
 		void Render() const;
 
+		//Shared
 		void ToggleRenderType();
 		void CycleRotation();
+		void CycleCullMode();
+		void ToggleUniformColor();
+
+		//Hardware
+		void ToggleFireFx();
+		void CycleSamplerState();
+
+		//Software
+		void CycleShadingMode();
+		void ToggleNormalMap();
+		void ToggleDepthBuffer();
+		void ToggleBoundingBoxView();
+
 
 		enum class RenderType {
 			Software,

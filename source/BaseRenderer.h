@@ -25,6 +25,7 @@ namespace dae
 		BaseRenderer& operator=(BaseRenderer&&) noexcept = delete;
 
 		void CycleRotation();
+		void ToggleUniformColor();
 
 		//Pure virtual functions
 		virtual void Update(const Timer* pTimer) = 0;

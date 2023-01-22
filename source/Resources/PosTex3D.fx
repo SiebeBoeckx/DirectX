@@ -10,11 +10,7 @@ Texture2D gGlossMap : GlossMap;
 
 SamplerState gSampler;
 
-RasterizerState gRasterizerState
-{
-    CullMode = back;
-    FrontCounterClockwise = true;
-};
+RasterizerState gRasterizerState;
 
 //--------------------------------------------------
 //BlendState

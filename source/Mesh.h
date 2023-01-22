@@ -39,6 +39,7 @@ namespace dae
 
 		void Render(ID3D11DeviceContext* pDeviceContext, const Camera& camera);
 		void CycleSamplerState();
+		void CycleCullingMode();
 
 		std::vector<Vertex_PosTex> GetVertices() const { return m_VerticesTex; };
 		std::vector<uint32_t> GetIndices() const { return m_Indices; };

@@ -117,6 +117,15 @@ void SoftwareRenderer::RenderTriangle(const Vertex_Out& v0, const Vertex_Out& v1
 	{
 		for (int px{ int(topLeft.x) }; px < bottomRight.x; ++px)
 		{
+			if (m_State == RenderState::boundingBox)
+			{
+				finalColor = ColorRGB{ 1.f, 1.f, 1.f };
+				m_pBackBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBackBuffer->format,
+					static_cast<uint8_t>(finalColor.r * 255),
+					static_cast<uint8_t>(finalColor.g * 255),
+					static_cast<uint8_t>(finalColor.b * 255));
+				continue;
+			}
 			const Vector2 pixelPos = Vector2{ (float)px, (float)py };
 
 			//side A cross check
@@ -128,8 +137,6 @@ void SoftwareRenderer::RenderTriangle(const Vertex_Out& v0, const Vertex_Out& v1
 
 			const float crossA{ Vector2::Cross(sideA, vertex1ToPixel) };
 
-			if (crossA < 0) continue;
-
 			//side B cross check
 			const Vector2 sideB = Vector2{ v2.position.x - v1.position.x,
 										   v2.position.y - v1.position.y };
@@ -138,8 +145,6 @@ void SoftwareRenderer::RenderTriangle(const Vertex_Out& v0, const Vertex_Out& v1
 													pixelPos.y - v1.position.y };
 
 			const float crossB{ Vector2::Cross(sideB, vertex2ToPixel) };
-
-			if (crossB < 0) continue;
 
 			//side C cross check
 			const Vector2 sideC = Vector2{ v0.position.x - v2.position.x,
@@ -150,7 +155,22 @@ void SoftwareRenderer::RenderTriangle(const Vertex_Out& v0, const Vertex_Out& v1
 
 			const float crossC{ Vector2::Cross(sideC, vertex3ToPixel) };
 
-			if (crossC < 0) continue;
+			bool pointInTriangle{ false };
+
+			switch (m_CullMode)
+			{
+			case dae::SoftwareRenderer::CullingMode::back:
+				pointInTriangle = crossA >= 0 && crossB >= 0 && crossC >= 0;
+				break;
+			case dae::SoftwareRenderer::CullingMode::front:
+				pointInTriangle = crossA <= 0 && crossB <= 0 && crossC <= 0;
+				break;
+			case dae::SoftwareRenderer::CullingMode::none:
+				pointInTriangle = (crossA >= 0 && crossB >= 0 && crossC >= 0) || (crossA <= 0 && crossB <= 0 && crossC <= 0);
+				break;
+			}
+
+			if (!pointInTriangle) continue;
 
 			//pixel is in triangle		
 			float weight2 = crossA;
@@ -189,6 +209,16 @@ void SoftwareRenderer::RenderTriangle(const Vertex_Out& v0, const Vertex_Out& v1
 											((v1.uv / v1.position.w) * weight1) +
 											((v2.uv / v2.position.w) * weight2))
 											* interpolatedWDepth;		
+
+			if (interpolatedUV.x < 0 || interpolatedUV.y < 0)
+			{
+				continue;
+			}
+
+			if (interpolatedUV.x > 1 || interpolatedUV.y > 1)
+			{
+				continue;
+			}
 		
 			Vertex_Out outputPixel;
 			outputPixel.position = Vector4{ pixelPos.x, pixelPos.y, interpolatedZDepth, interpolatedWDepth };
@@ -235,8 +265,8 @@ void SoftwareRenderer::RenderMesh()
 
 	if (m_ShouldUseUniformColor)
 	{
-		ColorRGB clearColor = ColorRGB{ 25.5f,25.5f,25.5f }; //25.5 / 255 = 0.1
-		Uint32 clearColorUint = 0xFF000000 | (Uint32)m_ClearColor.r | (Uint32)m_ClearColor.g << 8 | (Uint32)m_ClearColor.b << 16;
+		ColorRGB clearColor{ m_UniformColor.r * 255, m_UniformColor.g * 255 ,m_UniformColor.b * 255 };
+		Uint32 clearColorUint = 0xFF000000 | (Uint32)clearColor.r | (Uint32)clearColor.g << 8 | (Uint32)clearColor.b << 16;
 		SDL_FillRect(m_pBackBuffer, NULL, clearColorUint);
 	}
 	else
@@ -332,21 +362,41 @@ void SoftwareRenderer::CycleRenderState()
 	std::cout << "Renderstate: ";
 	switch (m_State)
 	{
-	case RenderState::texture:
-		m_State = RenderState::depth;
-		std::cout << "depth\n";
-		break;
-	case RenderState::depth:
+	case RenderState::combined:
 		m_State = RenderState::observedArea;
+		m_PreviousState = RenderState::combined;
 		std::cout << "observed area\n";
 		break;
 	case RenderState::observedArea:
+		m_State = RenderState::diffuse;
+		m_PreviousState = RenderState::observedArea;
+		std::cout << "diffuse\n";
+		break;
+	case RenderState::diffuse:
 		m_State = RenderState::phong;
-		std::cout << "phong\n";
+		m_PreviousState = RenderState::diffuse;
+		std::cout << "specular\n";
 		break;
 	case RenderState::phong:
-		m_State = RenderState::texture;
+		m_State = RenderState::combined;
+		m_PreviousState = RenderState::phong;
 		std::cout << "combined\n";
+		break;
+	}
+}
+
+void SoftwareRenderer::CycleCullingMode()
+{
+	switch (m_CullMode)
+	{
+	case CullingMode::back:
+		m_CullMode = CullingMode::front;
+		break;
+	case CullingMode::front:
+		m_CullMode = CullingMode::none;
+		break;
+	case CullingMode::none:
+		m_CullMode = CullingMode::back;
 		break;
 	}
 }
@@ -399,7 +449,7 @@ ColorRGB SoftwareRenderer::PixelShading(const Vertex_Out& vertex) const
 	const float depthRemap{ Remap(vertex.position.z, 0.995f, 1.0f) };
 	switch (m_State)
 	{
-	case RenderState::texture:
+	case RenderState::combined:
 		returnColor = m_Light.intensity * diffuseColor * cosineLaw + phongColor + m_Light.ambientColor;
 		break;
 
@@ -415,6 +465,10 @@ ColorRGB SoftwareRenderer::PixelShading(const Vertex_Out& vertex) const
 	case RenderState::phong:
 		returnColor = phongColor;
 		break;
+
+	case RenderState::diffuse:
+		returnColor = diffuseColor;
+		break;
 	}
 	
 	return returnColor;
@@ -428,4 +482,30 @@ ColorRGB SoftwareRenderer::Phong(float specular, float exp, const Vector3& l, co
 	const float cosAlpha = std::max(0.f, Vector3::Dot(reflect, v));
 	const float value = specular * powf(cosAlpha, exp);
 	return ColorRGB{ value,value,value };
+}
+
+void SoftwareRenderer::ToggleDepthView()
+{
+	if (m_State != RenderState::depth)
+	{
+		m_PreviousState = m_State;
+		m_State = RenderState::depth;
+	}
+	else
+	{
+		m_State = m_PreviousState;
+	}
+}
+
+void SoftwareRenderer::ToggleBoundingBoxView()
+{
+	if (m_State != RenderState::boundingBox)
+	{
+		m_PreviousState = m_State;
+		m_State = RenderState::boundingBox;
+	}
+	else
+	{
+		m_State = m_PreviousState;
+	}
 }

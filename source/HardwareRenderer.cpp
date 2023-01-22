@@ -100,13 +100,26 @@ namespace dae
 			return;
 
 		//1. Clear RTV & DSV
-		ColorRGB clearColor{ .39f, .59f, .93f };
-		m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
+		if (m_ShouldUseUniformColor)
+		{
+			ColorRGB clearColor{ m_UniformColor };
+			m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &m_UniformColor.r);
+		}
+		else
+		{
+			ColorRGB clearColor{ .39f, .59f, .93f };
+			m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
+		}
+		
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
 		//2. Set Pipeline & invoke DrawCalls (= render)
 		m_pMesh->Render(m_pDeviceContext, *m_pCamera);
-		m_pFire->Render(m_pDeviceContext, *m_pCamera);
+		if (m_RenderFire)
+		{
+			m_pFire->Render(m_pDeviceContext, *m_pCamera);
+		}
+
 		
 		//3. Present BackBuffer (swap)
 		m_pSwapChain->Present(0, 0);
@@ -219,5 +232,15 @@ namespace dae
 	{
 		m_pMesh->CycleSamplerState();
 		m_pFire->CycleSamplerState();
+	}
+
+	void HardwareRenderer::CycleCullingMode()
+	{
+		m_pMesh->CycleCullingMode();
+	}
+
+	void HardwareRenderer::ToggleFireFX()
+	{
+		m_RenderFire = !m_RenderFire;
 	}
 }

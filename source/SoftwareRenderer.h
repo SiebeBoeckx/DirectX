@@ -32,8 +32,13 @@ namespace dae
 		//==== Extra
 
 		void CycleRenderState();
+		void CycleCullingMode();
+
+		void ToggleDepthView();
 
 		void ToggleNormalMap();
+
+		void ToggleBoundingBoxView();
 
 		void SetMesh(Mesh_PosTexSoftwareVehicle* pMesh) { m_pMesh = pMesh; };
 
@@ -51,16 +56,27 @@ namespace dae
 
 		Mesh_PosTexSoftwareVehicle* m_pMesh{};
 
-		ColorRGB m_ClearColor{ 99.f, 99.f, 99.f }; //99 / 255 = 0.36
+		ColorRGB m_ClearColor{ 99, 99, 99 }; //99 / 255 = 0.36
 
 		enum class RenderState
 		{
-			texture = 0,
+			combined = 0,
 			depth = 1,
 			observedArea = 2,
-			phong = 3
+			phong = 3,
+			diffuse = 4,
+			boundingBox = 5
 		};
-		RenderState m_State{ RenderState::texture };
+		RenderState m_State{ RenderState::combined };
+		RenderState m_PreviousState{ RenderState::combined };
+
+		enum class CullingMode
+		{
+			back,
+			front,
+			none
+		};
+		CullingMode m_CullMode{ CullingMode::back };
 
 		bool m_UsingNormalMap{ true };
 
@@ -81,7 +97,5 @@ namespace dae
 		void RenderMesh(); //Vehicle
 		ColorRGB PixelShading(const Vertex_Out& vertex) const;
 		ColorRGB Phong(float specular, float exp, const Vector3& l, const Vector3& v, const Vector3& n) const;
-
-		Mesh_PosTexSoftwareVehicle* InitializeMesh();
 	};
 }

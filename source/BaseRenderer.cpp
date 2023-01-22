@@ -17,4 +17,9 @@ namespace dae
 	{
 		m_IsRotating = !m_IsRotating;
 	}
+
+	void BaseRenderer::ToggleUniformColor()
+	{
+		m_ShouldUseUniformColor = !m_ShouldUseUniformColor;
+	}
 }

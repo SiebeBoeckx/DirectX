@@ -91,6 +91,11 @@ namespace dae
 
 	Effect_PosTex::~Effect_PosTex()
 	{
+		m_pCullMode->Release();
+		m_pNoCullingMode->Release();
+		m_pFrontCullingMode->Release();
+		m_pBackCullingMode->Release();
+
 		m_pSamplerState->Release();
 		m_pAnisotropicSampler->Release();
 		m_pLinearSampler->Release();
@@ -138,6 +143,12 @@ namespace dae
 		{
 			std::wcout << L"m_pSamplerState not valid\n";
 		}
+
+		m_pCullMode = m_pEffect->GetVariableByName("gRasterizerState")->AsRasterizer();
+		if (!m_pCullMode->IsValid())
+		{
+			std::wcout << L"m_pCullMode not valid\n";
+		}
 		SetTextures();
 
 		//Create states  ==========================
@@ -157,6 +168,20 @@ namespace dae
 
 		samplerDesc.Filter = D3D11_FILTER_COMPARISON_ANISOTROPIC;
 		hr = m_pDevice->CreateSamplerState(&samplerDesc, &m_pAnisotropicSampler);
+
+		D3D11_RASTERIZER_DESC rasterizerDesc{};
+		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+		rasterizerDesc.FrontCounterClockwise = false;
+		rasterizerDesc.DepthClipEnable = true;
+
+		rasterizerDesc.CullMode = D3D11_CULL_BACK;
+		hr = m_pDevice->CreateRasterizerState(&rasterizerDesc, &m_pBackCullingMode);
+
+		rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+		hr = m_pDevice->CreateRasterizerState(&rasterizerDesc, &m_pFrontCullingMode);
+
+		rasterizerDesc.CullMode = D3D11_CULL_NONE;
+		hr = m_pDevice->CreateRasterizerState(&rasterizerDesc, &m_pNoCullingMode);
 	}
 
 	ID3DX11Effect* Effect_PosTex::LoadEffect(ID3D11Device* pDevice, const std::wstring& assetFile)
@@ -228,6 +253,25 @@ namespace dae
 		}
 	}
 
+	void Effect_PosTex::CycleCullMode()
+	{
+		switch (m_currentCullMode)
+		{
+		case dae::Effect_PosTex::CullMode::BACK:
+			m_currentCullMode = CullMode::FRONT;
+			SetCullMode(CullMode::FRONT);
+			break;
+		case dae::Effect_PosTex::CullMode::FRONT:
+			m_currentCullMode = CullMode::NONE;
+			SetCullMode(CullMode::NONE);
+			break;
+		case dae::Effect_PosTex::CullMode::NONE:
+			m_currentCullMode = CullMode::BACK;
+			SetCullMode(CullMode::BACK);
+			break;
+		}
+	}
+
 	void Effect_PosTex::SetSamplerState(SamplerState state)
 	{
 		switch (state)
@@ -247,6 +291,24 @@ namespace dae
 		}
 	}
 
+	void Effect_PosTex::SetCullMode(CullMode mode)
+	{
+		switch (mode)
+		{
+		case CullMode::BACK:
+			std::cout << "Back culling set\n";
+			m_pCullMode->SetRasterizerState(0, m_pBackCullingMode);
+			break;
+		case CullMode::FRONT:
+			std::cout << "Front culling set\n";
+			m_pCullMode->SetRasterizerState(0, m_pFrontCullingMode);
+			break;
+		case CullMode::NONE:
+			std::cout << "No culling set\n";
+			m_pCullMode->SetRasterizerState(0, m_pNoCullingMode);
+			break;
+		}
+	}
 	//==============================================================================
 	//Vehicle
 	//==============================================================================

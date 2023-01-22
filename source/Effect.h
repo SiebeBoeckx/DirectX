@@ -51,10 +51,20 @@ namespace dae
 			ANISOTROPIC
 		};
 
+		void CycleCullMode();
+
+		enum class CullMode
+		{
+			BACK,
+			FRONT,
+			NONE
+		};
+
 	protected:
 		virtual void SetTextures() = 0;
 		static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& assetFile);
 		void SetSamplerState(SamplerState state);
+		void SetCullMode(CullMode mode);
 
 		ID3D11Device* m_pDevice;
 		const std::wstring& m_assetFile;
@@ -73,6 +83,14 @@ namespace dae
 
 		ID3DX11EffectSamplerVariable* m_pSamplerState;
 		SamplerState m_currentSamplerState{ SamplerState::POINT };
+
+		//Sampler
+		ID3D11RasterizerState* m_pBackCullingMode;
+		ID3D11RasterizerState* m_pFrontCullingMode;
+		ID3D11RasterizerState* m_pNoCullingMode;
+
+		ID3DX11EffectRasterizerVariable* m_pCullMode;
+		CullMode m_currentCullMode{ CullMode::BACK };
 	};
 
 	class Effect_PosTexVehicle final : public Effect_PosTex
