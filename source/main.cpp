@@ -99,6 +99,10 @@ int main(int argc, char* args[])
 				{
 					pRenderer->ToggleUniformColor();
 				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F11)
+				{
+					pTimer->StartBenchmark(10);
+				}
 				break;
 			default: ;
 			}
