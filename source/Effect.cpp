@@ -91,6 +91,15 @@ namespace dae
 
 	Effect_PosTex::~Effect_PosTex()
 	{
+		m_pSamplerState->Release();
+		m_pAnisotropicSampler->Release();
+		m_pLinearSampler->Release();
+		m_pPointSampler->Release();
+
+		m_pMatInvViewVariable->Release();
+		m_pMatWorldViewProjVariable->Release();
+		m_pMatWorldVariable->Release();
+
 		m_pTechnique->Release();
 
 		m_pEffect->Release();
