@@ -55,6 +55,10 @@ namespace dae
 		if (m_pTexture)
 		{
 			m_pTexture->Release();
+		}
+
+		if (m_pShaderResourceView)
+		{
 			m_pShaderResourceView->Release();
 		}
 	}

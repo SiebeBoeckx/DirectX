@@ -35,9 +35,16 @@ SoftwareRenderer::~SoftwareRenderer()
 {
 	delete[] m_pDepthBufferPixels;
 	delete m_pTexture;
+	m_pTexture = nullptr;
 	delete m_pNormals;
+	m_pNormals = nullptr;
 	delete m_pSpecular;
+	m_pSpecular = nullptr;
 	delete m_pPhongExponent;
+	m_pPhongExponent = nullptr;
+
+	delete m_pMesh;
+	m_pMesh = nullptr;
 }
 
 void SoftwareRenderer::Update(const Timer* pTimer)

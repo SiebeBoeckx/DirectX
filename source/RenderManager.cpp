@@ -19,18 +19,17 @@ namespace dae
 		m_pCamera->Initialize(aspectRatio, 45.f, { .0f, 0.f, 0.f });
 
 		//load needed textures
-		std::vector<Texture*> pTextures{};
 		Texture* pDiffuse = Texture::LoadFromFile("Resources/vehicle_diffuse.png");
 		Texture* pNormal = Texture::LoadFromFile("Resources/vehicle_normal.png");
 		Texture* pSpecular = Texture::LoadFromFile("Resources/vehicle_specular.png");
 		Texture* pGloss = Texture::LoadFromFile("Resources/vehicle_gloss.png");
-		pTextures.push_back(pDiffuse);
-		pTextures.push_back(pNormal);
-		pTextures.push_back(pSpecular);
-		pTextures.push_back(pGloss);
+		m_pSoftwareTextures.push_back(pDiffuse);
+		m_pSoftwareTextures.push_back(pNormal);
+		m_pSoftwareTextures.push_back(pSpecular);
+		m_pSoftwareTextures.push_back(pGloss);
 
 		//Create the different renderers
-		m_pRendererSoftware = new SoftwareRenderer(pWindow, m_pCamera, pTextures);
+		m_pRendererSoftware = new SoftwareRenderer(pWindow, m_pCamera, m_pSoftwareTextures);
 		m_pRendererHardware = new HardwareRenderer(pWindow, m_pCamera);
 		m_pCurrentRenderer = m_pRendererHardware;
 
@@ -50,45 +49,37 @@ namespace dae
 
 		m_pRendererSoftware->SetMesh(m_pSoftwareMesh);
 
-		std::vector<Texture*> pHardwareTextures{};
-
 		Texture* pHardwareDiffuse = Texture::LoadFromFile("Resources/vehicle_diffuse.png", m_pRendererHardware->GetDevice());
 		Texture* pHardwareNormal = Texture::LoadFromFile("Resources/vehicle_normal.png", m_pRendererHardware->GetDevice());
 		Texture* pHardwareSpecular = Texture::LoadFromFile("Resources/vehicle_specular.png", m_pRendererHardware->GetDevice());
 		Texture* pHardwareGloss = Texture::LoadFromFile("Resources/vehicle_gloss.png", m_pRendererHardware->GetDevice());
-		pHardwareTextures.push_back(pHardwareDiffuse);
-		pHardwareTextures.push_back(pHardwareNormal);
-		pHardwareTextures.push_back(pHardwareSpecular);
-		pHardwareTextures.push_back(pHardwareGloss);
-		Texture* pFireDiffuse = Texture::LoadFromFile("Resources/fireFX_diffuse.png", m_pRendererHardware->GetDevice());
-		m_pRendererHardware->SetTextures(pTextures, pFireDiffuse);
+		m_pHardwareTextures.push_back(pHardwareDiffuse);
+		m_pHardwareTextures.push_back(pHardwareNormal);
+		m_pHardwareTextures.push_back(pHardwareSpecular);
+		m_pHardwareTextures.push_back(pHardwareGloss);
+		m_pFireTexture = Texture::LoadFromFile("Resources/fireFX_diffuse.png", m_pRendererHardware->GetDevice());
+		m_pRendererHardware->SetTextures(m_pHardwareTextures, m_pFireTexture);
 
-		m_pHardwareMesh = new Mesh_PosTexVehicle(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, pHardwareTextures);
+		m_pHardwareMesh = new Mesh_PosTexVehicle(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, m_pHardwareTextures);
 
 		m_pRendererHardware->SetMesh(m_pHardwareMesh);
 
 		Utils::ParseOBJ("Resources/fireFX.obj", vertices, indices);
-		m_pFire = new Mesh_PosTexFire(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, pFireDiffuse);
+		m_pFire = new Mesh_PosTexFire(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, m_pFireTexture);
 
 		m_pRendererHardware->SetFire(m_pFire);
 	}
 
 	RenderManager::~RenderManager()
 	{
-		delete m_pFire;
-		m_pFire = nullptr;
-
-		delete m_pHardwareMesh;
-		m_pHardwareMesh = nullptr;
-
-		delete m_pSoftwareMesh;
-		m_pSoftwareMesh = nullptr;
-
 		delete m_pCamera;
 		m_pCamera = nullptr;
 
 		delete m_pRendererSoftware;
 		m_pRendererSoftware = nullptr;
+
+		delete m_pRendererHardware;
+		m_pRendererHardware = nullptr;
 	}
 
 	void RenderManager::Update(const Timer* pTimer)

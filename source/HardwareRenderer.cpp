@@ -26,6 +26,21 @@ namespace dae
 
 	HardwareRenderer::~HardwareRenderer()
 	{
+		delete m_pTexture;
+		m_pTexture = nullptr;
+		delete m_pNormalMap;
+		m_pNormalMap = nullptr;
+		delete m_pSpecularMap;
+		m_pSpecularMap = nullptr;
+		delete m_pGlossMap;
+		m_pGlossMap = nullptr;
+
+		delete m_pFireTexture;
+		m_pFireTexture = nullptr;
+
+		delete m_pFire;
+		m_pFire = nullptr;
+
 		delete m_pMesh;
 		m_pMesh = nullptr;
 

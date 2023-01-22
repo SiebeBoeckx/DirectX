@@ -38,6 +38,10 @@ namespace dae
 		BaseRenderer* m_pCurrentRenderer{};
 		Camera* m_pCamera{};
 
+		std::vector<Texture*> m_pSoftwareTextures;
+		std::vector<Texture*> m_pHardwareTextures;
+		Texture* m_pFireTexture;
+
 		Mesh_PosTexSoftwareVehicle* m_pSoftwareMesh{};
 
 		Mesh_PosTexVehicle* m_pHardwareMesh{};
