@@ -43,6 +43,6 @@ namespace dae
 		Mesh_PosTexVehicle* m_pHardwareMesh{};
 		Mesh_PosTexFire* m_pFire{};
 
-		RenderType m_CurrentRenderType{ RenderType::Software };
+		RenderType m_CurrentRenderType{ RenderType::Hardware };
 	};
 }

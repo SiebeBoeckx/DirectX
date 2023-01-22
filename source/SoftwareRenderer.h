@@ -51,6 +51,8 @@ namespace dae
 
 		Mesh_PosTexSoftwareVehicle* m_pMesh{};
 
+		ColorRGB m_ClearColor{ 99.f, 99.f, 99.f }; //99 / 255 = 0.36
+
 		enum class RenderState
 		{
 			texture = 0,

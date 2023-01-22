@@ -32,7 +32,7 @@ namespace dae
 		//Create the different renderers
 		m_pRendererSoftware = new SoftwareRenderer(pWindow, m_pCamera, pTextures);
 		m_pRendererHardware = new HardwareRenderer(pWindow, m_pCamera);
-		m_pCurrentRenderer = m_pRendererSoftware;
+		m_pCurrentRenderer = m_pRendererHardware;
 
 		//Initialize objects (now that we have devices)
 
@@ -50,27 +50,27 @@ namespace dae
 
 		m_pRendererSoftware->SetMesh(m_pSoftwareMesh);
 
-		pTextures.clear(); //prepare for different textures (using device for hardware)
+		std::vector<Texture*> pHardwareTextures{};
 
-		pDiffuse = Texture::LoadFromFile("Resources/vehicle_diffuse.png", m_pRendererHardware->GetDevice());
-		pNormal = Texture::LoadFromFile("Resources/vehicle_normal.png", m_pRendererHardware->GetDevice());
-		pSpecular = Texture::LoadFromFile("Resources/vehicle_specular.png", m_pRendererHardware->GetDevice());
-		pGloss = Texture::LoadFromFile("Resources/vehicle_gloss.png", m_pRendererHardware->GetDevice());
-		pTextures.push_back(pDiffuse);
-		pTextures.push_back(pNormal);
-		pTextures.push_back(pSpecular);
-		pTextures.push_back(pGloss);
+		Texture* pHardwareDiffuse = Texture::LoadFromFile("Resources/vehicle_diffuse.png", m_pRendererHardware->GetDevice());
+		Texture* pHardwareNormal = Texture::LoadFromFile("Resources/vehicle_normal.png", m_pRendererHardware->GetDevice());
+		Texture* pHardwareSpecular = Texture::LoadFromFile("Resources/vehicle_specular.png", m_pRendererHardware->GetDevice());
+		Texture* pHardwareGloss = Texture::LoadFromFile("Resources/vehicle_gloss.png", m_pRendererHardware->GetDevice());
+		pHardwareTextures.push_back(pHardwareDiffuse);
+		pHardwareTextures.push_back(pHardwareNormal);
+		pHardwareTextures.push_back(pHardwareSpecular);
+		pHardwareTextures.push_back(pHardwareGloss);
+		Texture* pFireDiffuse = Texture::LoadFromFile("Resources/fireFX_diffuse.png", m_pRendererHardware->GetDevice());
+		m_pRendererHardware->SetTextures(pTextures, pFireDiffuse);
 
-		m_pHardwareMesh = new Mesh_PosTexVehicle(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, pTextures);
+		m_pHardwareMesh = new Mesh_PosTexVehicle(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, pHardwareTextures);
 
 		m_pRendererHardware->SetMesh(m_pHardwareMesh);
 
-		Texture* pFireDiffuse = Texture::LoadFromFile("Resources/fireFX_diffuse.png", m_pRendererHardware->GetDevice());
 		Utils::ParseOBJ("Resources/fireFX.obj", vertices, indices);
 		m_pFire = new Mesh_PosTexFire(m_pRendererHardware->GetDevice(), vertices, indices, worldMatrix, pFireDiffuse);
 
 		m_pRendererHardware->SetFire(m_pFire);
-		m_pRendererHardware->SetTextures(pTextures, pFireDiffuse);
 	}
 
 	RenderManager::~RenderManager()
@@ -94,9 +94,8 @@ namespace dae
 	void RenderManager::Update(const Timer* pTimer)
 	{
 		//Check if the current Renderer is not a nullptr
-		if (m_pCurrentRenderer) {
-			m_pCurrentRenderer->Update(pTimer);
-		}
+		m_pRendererHardware->Update(pTimer);
+		m_pRendererSoftware->Update(pTimer);
 	}
 
 
@@ -126,6 +125,7 @@ namespace dae
 
 	void RenderManager::CycleRotation()
 	{
-		m_pCurrentRenderer->CycleRotation();
+		m_pRendererHardware->CycleRotation();
+		m_pRendererSoftware->CycleRotation();
 	}
 }

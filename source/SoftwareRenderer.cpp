@@ -226,9 +226,17 @@ void SoftwareRenderer::RenderMesh()
 	std::fill_n(m_pDepthBufferPixels, m_Width * m_Height, FLT_MAX);
 	SDL_FillRect(m_pBackBuffer, &m_pBackBuffer->clip_rect, 100);
 
-	ColorRGB clearColor = ColorRGB{ 100,100,100 };
-	Uint32 clearColorUint = 0xFF000000 | (Uint32)clearColor.r | (Uint32)clearColor.g << 8 | (Uint32)clearColor.b << 16;
-	SDL_FillRect(m_pBackBuffer, NULL, clearColorUint);
+	if (m_ShouldUseUniformColor)
+	{
+		ColorRGB clearColor = ColorRGB{ 25.5f,25.5f,25.5f }; //25.5 / 255 = 0.1
+		Uint32 clearColorUint = 0xFF000000 | (Uint32)m_ClearColor.r | (Uint32)m_ClearColor.g << 8 | (Uint32)m_ClearColor.b << 16;
+		SDL_FillRect(m_pBackBuffer, NULL, clearColorUint);
+	}
+	else
+	{
+		Uint32 clearColorUint = 0xFF000000 | (Uint32)m_ClearColor.r | (Uint32)m_ClearColor.g << 8 | (Uint32)m_ClearColor.b << 16;
+		SDL_FillRect(m_pBackBuffer, NULL, clearColorUint);
+	}	
 
 	//RENDER LOGIC
 
@@ -237,7 +245,7 @@ void SoftwareRenderer::RenderMesh()
 
 	if (m_pMesh->m_topology == PrimitiveTopology::TriangleList)
 	{
-		for (int i{}; i < m_pMesh->GetIndices().size() / 3; ++i)
+		for (size_t i{}; i < m_pMesh->GetIndices().size() / 3; ++i)
 		{
 			Vertex_Out v0 = m_pMesh->m_Vertices_out[m_pMesh->GetIndices()[i * 3]];
 			Vertex_Out v1 = m_pMesh->m_Vertices_out[m_pMesh->GetIndices()[i * 3 + 1]];
@@ -262,7 +270,7 @@ void SoftwareRenderer::RenderMesh()
 	}
 	else
 	{
-		for (int i{}; i < m_pMesh->GetIndices().size() - 2; ++i)
+		for (size_t i{}; i < m_pMesh->GetIndices().size() - 2; ++i)
 		{
 			if (i % 2 != 0)
 			{
@@ -413,19 +421,4 @@ ColorRGB SoftwareRenderer::Phong(float specular, float exp, const Vector3& l, co
 	const float cosAlpha = std::max(0.f, Vector3::Dot(reflect, v));
 	const float value = specular * powf(cosAlpha, exp);
 	return ColorRGB{ value,value,value };
-}
-
-Mesh_PosTexSoftwareVehicle* SoftwareRenderer::InitializeMesh()
-{
-	std::vector<Vertex_PosTex> vertices{ };
-	std::vector<uint32_t> indices{ };
-
-	Utils::ParseOBJ("Resources/vehicle.obj", vertices, indices);
-
-	const Vector3 position{ Vector3{0.f, 0.f, 50.f} };
-	const Vector3 rotation{ };
-	const Vector3 scale{ Vector3{ 1.f, 1.f, 1.f } };
-	Matrix worldMatrix = Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
-
-	return new Mesh_PosTexSoftwareVehicle(vertices, indices, worldMatrix, PrimitiveTopology::TriangleList);
 }
